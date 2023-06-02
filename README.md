@@ -1,103 +1,84 @@
-# TSDX User Guide
+## Remote file monitoring
 
-Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
+This library is used to monitor whether the remote file has changed, and notify the user to refresh the page when it changes.
 
-> This TSDX setup is meant for developing libraries (not apps!) that can be published to NPM. If you’re looking to build a Node app, you could use `ts-node-dev`, plain `ts-node`, or simple `tsc`.
+### Install
 
-> If you’re new to TypeScript, checkout [this handy cheatsheet](https://devhints.io/typescript)
-
-## Commands
-
-TSDX scaffolds your new library inside `/src`.
-
-To run TSDX, use:
+Install the remote file monitoring library using npm:
 
 ```bash
-npm start # or yarn start
+npm install remote-file-monitor
 ```
 
-This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
+### Instructions
 
-To do a one-off build, use `npm run build` or `yarn build`.
+First, import the required modules and interface definitions:
 
-To run tests, use `npm test` or `yarn test`.
-
-## Configuration
-
-Code quality is set up for you with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
-
-### Jest
-
-Jest tests are set up to run with `npm test` or `yarn test`.
-
-### Bundle Analysis
-
-[`size-limit`](https://github.com/ai/size-limit) is set up to calculate the real cost of your library with `npm run size` and visualize the bundle with `npm run analyze`.
-
-#### Setup Files
-
-This is the folder structure we set up for you:
-
-```txt
-/src
-  index.tsx       # EDIT THIS
-/test
-  blah.test.tsx   # EDIT THIS
-.gitignore
-package.json
-README.md         # EDIT THIS
-tsconfig.json
+```typescript
+import { WorkerConfig } from 'remote-file-monitor';
 ```
 
-### Rollup
+Then, configure the `WorkerConfig` object according to your needs, and call the `remoteFileMonitor` method to start file monitoring:
 
-TSDX uses [Rollup](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
+```typescript
+import { remoteFileMonitor } from 'remote-file-monitor';
 
-### TypeScript
+const config: WorkerConfig = {
+   loopMs: 5000,
+   checkFileUrl: 'https://example.com/index.html',
+   notification: {
+     title: 'The page has been updated! ',
+     options: {
+       dir: 'auto',
+       body: 'Found a new update, please click to refresh the page',
+       requireInteraction: true,
+     },
+   },
+   clickCallback: () => {
+     window.location.reload();
+   },
+};
 
-`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
-
-## Continuous Integration
-
-### GitHub Actions
-
-Two actions are added by default:
-
-- `main` which installs deps w/ cache, lints, tests, and builds on all pushes against a Node and OS matrix
-- `size` which comments cost comparison of your library on every pull request using [`size-limit`](https://github.com/ai/size-limit)
-
-## Optimizations
-
-Please see the main `tsdx` [optimizations docs](https://github.com/palmerhq/tsdx#optimizations). In particular, know that you can take advantage of development-only optimizations:
-
-```js
-// ./types/index.d.ts
-declare var __DEV__: boolean;
-
-// inside your code...
-if (__DEV__) {
-  console.log('foo');
-}
+remoteFileMonitor(config);
 ```
 
-You can also choose to install and use [invariant](https://github.com/palmerhq/tsdx#invariant) and [warning](https://github.com/palmerhq/tsdx#warning) functions.
+This will check the remote file for changes at the specified interval and send a notification when it changes.
 
-## Module Formats
+### configuration items
 
-CJS, ESModules, and UMD module formats are supported.
+The following configuration items are available and their descriptions:
 
-The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
+- `loopMs` (optional): The time interval in milliseconds for file checking, default is 5000ms.
+- `checkFileUrl` (optional): The URL of the remote file to monitor, e.g. `https://example.com/index.html`. Defaults to the URL of the current page.
+- `notification`
+  - `notification.title` (required): The title of the notification, which will be displayed in the notification received by the user.
+  - `notification.options` (required): The options object of the notification, which is used to define other properties of the notification, such as the notification body, the direction of the notification, etc. For detailed properties, please refer to [NotificationOptions](https://developer.mozilla.org/en-US/docs/Web/API/Notification/Notification).
+  - `clickCallback` (optional): The callback function to be executed when the notification is clicked.
 
-## Named Exports
+### Notification permissions
 
-Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
+Before using remote file monitoring, make sure you have obtained the notification permission of the browser. Otherwise, you need to request user authorization:
 
-## Including Styles
+```typescript
+import { requestNotificationPermission } from 'remote-file-monitor';
 
-There are many ways to ship styles, including with CSS-in-JS. TSDX has no opinion on this, configure how you like.
+requestNotificationPermission().then(permission => {
+   if (permission === 'granted') {
+     // Continue to start file monitoring
+     remoteFileMonitor(config);
+   } else {
+     console.log('User denied notification permission');
+   }
+});
+```
 
-For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
+### Precautions
 
-## Publishing to NPM
+- Remote file monitoring needs to run in a browser that supports Web Workers.
+- If the browser does not support Web Workers, an error message will be output to the console.
+- Please ensure that cross-origin access to remote files is properly configured.
+- Remote file monitoring can only monitor files under the HTTP/HTTPS protocol.
 
-We recommend using [np](https://github.com/sindresorhus/np).
+This is a basic usage example, you can configure and extend it according to your needs. Detailed API documentation can refer to source code or library documentation.
+
+Hope this document helps you to use the remote file monitoring library! If you have any questions, please feel free to ask.
