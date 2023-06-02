@@ -12,13 +12,15 @@ npm install remote-file-monitor
 
 ### 使用方法
 
-首先，导入所需的模块和接口定义：
+首先，导入所需的模块和接口定义，**默认配置，开箱即用**：
 
 ```typescript
-import { WorkerConfig } from 'remote-file-monitor';
+import { remoteFileMonitor } from 'remote-file-monitor';
+
+remoteFileMonitor()
 ```
 
-然后，根据你的需求配置 `WorkerConfig` 对象，并调用 `remoteFileMonitor` 方法启动文件监控：
+### 定制参数示例
 
 ```typescript
 import { remoteFileMonitor } from 'remote-file-monitor';
@@ -43,6 +45,7 @@ remoteFileMonitor(config);
 ```
 
 这将在指定的时间间隔内检查远程文件是否发生变化，并在变化时发送通知。
+
 
 ### 配置项
 

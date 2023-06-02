@@ -12,13 +12,15 @@ npm install remote-file-monitor
 
 ### Instructions
 
-First, import the required modules and interface definitions:
+First, import the required modules and interface definitions, **default configuration, out of the box**:
 
 ```typescript
-import { WorkerConfig } from 'remote-file-monitor';
+import { remoteFileMonitor } from 'remote-file-monitor';
+
+remoteFileMonitor()
 ```
 
-Then, configure the `WorkerConfig` object according to your needs, and call the `remoteFileMonitor` method to start file monitoring:
+### Custom parameter example
 
 ```typescript
 import { remoteFileMonitor } from 'remote-file-monitor';
