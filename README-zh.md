@@ -1,6 +1,6 @@
 ## Example
 
-![](./example/example.png =300)
+![](./example/example.png)
 ## 远程文件监控
 
 该库用于监控远程文件是否发生变化，并在变化时通知用户刷新页面。

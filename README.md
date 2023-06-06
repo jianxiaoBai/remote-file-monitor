@@ -1,8 +1,8 @@
-English | [简体中文](./README.zh-CN.md)
+English | [简体中文](./README-zh.md)
 
 ## Example
 
-![](./example/example.png =300)
+![](./example/example.png)
 ## Remote file monitoring
 
 This library is used to monitor whether the remote file has changed, and notify the user to refresh the page when it changes.
