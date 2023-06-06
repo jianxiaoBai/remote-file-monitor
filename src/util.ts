@@ -31,36 +31,38 @@ export const createWorkerFunc = () => {
   ctx.onmessage = function(event: any) {
     const { checkFileUrl, loopMs } = event.data;
     const clearTimer = setInterval(() => {
-      fetch(checkFileUrl, { method: 'HEAD' })
-        .then(
-          response =>
-            response.headers.get('ETag') ||
-            response.headers.get('Last-Modified')
-        )
-        .then(changeFlag => {
-          if (!changeFlag) {
-            console.log(`Can't get the change flag`);
-            clearInterval(clearTimer);
-            return;
-          }
+      if (document.visibilityState === 'visible') {
+        fetch(checkFileUrl, { method: 'HEAD' })
+          .then(
+            response =>
+              response.headers.get('ETag') ||
+              response.headers.get('Last-Modified')
+          )
+          .then(changeFlag => {
+            if (!changeFlag) {
+              console.log(`Can't get the change flag`);
+              clearInterval(clearTimer);
+              return;
+            }
 
-          if (previousValue === null) {
-            previousValue = changeFlag;
-          } else if (previousValue !== changeFlag) {
-            previousValue = changeFlag;
-            ctx.postMessage({
-              hasUpdate: true,
-            });
-          } else {
-            ctx.postMessage({
-              hasUpdate: false,
-            });
-          }
-        })
-        .catch(error => {
-          console.error(error);
-          clearInterval(clearTimer);
-        });
+            if (previousValue === null) {
+              previousValue = changeFlag;
+            } else if (previousValue !== changeFlag) {
+              previousValue = changeFlag;
+              ctx.postMessage({
+                hasUpdate: true,
+              });
+            } else {
+              ctx.postMessage({
+                hasUpdate: false,
+              });
+            }
+          })
+          .catch(error => {
+            console.error(error);
+            clearInterval(clearTimer);
+          });
+      }
     }, loopMs);
   };
   return ctx;
