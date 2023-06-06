@@ -3,6 +3,7 @@ import { startFileMonitorWorker } from './util';
 
 const defaultConfig: Required<WorkerConfig> = {
   loopMs: 5000,
+  enable: true,
   checkFileUrl: `${location.origin}/index.html`,
   notification: {
     title: 'Page has Update!',
@@ -26,14 +27,15 @@ export function remoteFileMonitor(config: WorkerConfig = {}) {
       ...config.notification,
     },
   };
-
-  if (window.Worker) {
-    Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
-        startFileMonitorWorker(dataItem);
-      }
-    });
-  } else {
-    console.log(`Your browser doesn't support web workers.`);
+  if (dataItem.enable) {
+    if (window.Worker) {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          startFileMonitorWorker(dataItem);
+        }
+      });
+    } else {
+      console.log(`Your browser doesn't support web workers.`);
+    }
   }
 }

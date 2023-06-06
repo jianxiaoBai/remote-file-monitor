@@ -1,5 +1,6 @@
 export interface WorkerConfig {
   loopMs?: number;
+  enable?: boolean;
   checkFileUrl?: string;
   notification?: {
     title: string;
