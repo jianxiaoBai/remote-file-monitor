@@ -12,8 +12,11 @@
   <div>test change</div>
 </body>
 <script type="module">
-  import { remoteFileMonitor } from "./remote-file-monitor.esm.js"
-  remoteFileMonitor()
+  import { remoteFileMonitor } from "../dist/remote-file-monitor.esm.js"
+
+  remoteFileMonitor({
+    checkFileUrl: 'https://localhost/example/index.html',
+  })
 </script>
 
 </html>

@@ -23,7 +23,10 @@ var startFileMonitorWorker = function startFileMonitorWorker(config) {
   };
   worker.postMessage({
     checkFileUrl: config.checkFileUrl,
-    loopMs: config.loopMs
+    loopMs: config.loopMs,
+    getVisibilityState: function getVisibilityState() {
+      return document.visibilityState;
+    }
   });
 };
 var createWorker = function createWorker(func) {
@@ -38,34 +41,38 @@ var createWorkerFunc = function createWorkerFunc() {
   ctx.onmessage = function (event) {
     var _event$data = event.data,
       checkFileUrl = _event$data.checkFileUrl,
-      loopMs = _event$data.loopMs;
+      loopMs = _event$data.loopMs,
+      getVisibilityState = _event$data.getVisibilityState;
     var clearTimer = setInterval(function () {
-      fetch(checkFileUrl, {
-        method: 'HEAD'
-      }).then(function (response) {
-        return response.headers.get('ETag') || response.headers.get('Last-Modified');
-      }).then(function (changeFlag) {
-        if (!changeFlag) {
-          console.log("Can't get the change flag");
+      console.log(getVisibilityState(), 'document.visibilityState');
+      if (getVisibilityState() === 'visible') {
+        fetch(checkFileUrl, {
+          method: 'HEAD'
+        }).then(function (response) {
+          return response.headers.get('ETag') || response.headers.get('Last-Modified');
+        }).then(function (changeFlag) {
+          if (!changeFlag) {
+            console.log("Can't get the change flag");
+            clearInterval(clearTimer);
+            return;
+          }
+          if (previousValue === null) {
+            previousValue = changeFlag;
+          } else if (previousValue !== changeFlag) {
+            previousValue = changeFlag;
+            ctx.postMessage({
+              hasUpdate: true
+            });
+          } else {
+            ctx.postMessage({
+              hasUpdate: false
+            });
+          }
+        })["catch"](function (error) {
+          console.error(error);
           clearInterval(clearTimer);
-          return;
-        }
-        if (previousValue === null) {
-          previousValue = changeFlag;
-        } else if (previousValue !== changeFlag) {
-          previousValue = changeFlag;
-          ctx.postMessage({
-            hasUpdate: true
-          });
-        } else {
-          ctx.postMessage({
-            hasUpdate: false
-          });
-        }
-      })["catch"](function (error) {
-        console.error(error);
-        clearInterval(clearTimer);
-      });
+        });
+      }
     }, loopMs);
   };
   return ctx;
@@ -100,6 +107,7 @@ var notifyAction = function notifyAction(title, options, callback) {
 
 var defaultConfig = {
   loopMs: 5000,
+  enable: true,
   checkFileUrl: location.origin + "/index.html",
   notification: {
     title: 'Page has Update!',
@@ -120,14 +128,16 @@ function remoteFileMonitor(config) {
   var dataItem = _extends({}, defaultConfig, config, {
     notification: _extends({}, defaultConfig.notification, config.notification)
   });
-  if (window.Worker) {
-    Notification.requestPermission().then(function (permission) {
-      if (permission === 'granted') {
-        startFileMonitorWorker(dataItem);
-      }
-    });
-  } else {
-    console.log("Your browser doesn't support web workers.");
+  if (dataItem.enable) {
+    if (window.Worker) {
+      Notification.requestPermission().then(function (permission) {
+        if (permission === 'granted') {
+          startFileMonitorWorker(dataItem);
+        }
+      });
+    } else {
+      console.log("Your browser doesn't support web workers.");
+    }
   }
 }
 
